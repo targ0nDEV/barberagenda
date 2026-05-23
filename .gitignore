@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# Next.js build output
+.next/
+.next-local/
+.next-runtime/
+out/
+
+# Vercel
+.vercel/
+
+# local env files
+.env
+.env*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
