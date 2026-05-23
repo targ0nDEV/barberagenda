@@ -25,7 +25,6 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registerForm, setRegisterForm] = useState({
-    username: "",
     password: "",
     fullName: "",
     nickname: "",
@@ -67,12 +66,11 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
     setSuccess("");
 
     if (
-      registerForm.username.trim().length < 3 ||
       registerForm.password.trim().length < 6 ||
       registerForm.fullName.trim().length < 3 ||
       registerForm.nickname.trim().length < 2
     ) {
-      setError("Preencha login, senha, nome completo e apelido corretamente.");
+      setError("Preencha senha, nome completo e apelido corretamente.");
       return;
     }
 
@@ -99,9 +97,8 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
 
     setSuccess(result.message);
     setMode("login");
-    setUsername(registerForm.username.trim().toLowerCase());
+    setUsername(registerForm.email.trim().toLowerCase());
     setRegisterForm({
-      username: "",
       password: "",
       fullName: "",
       nickname: "",
@@ -126,7 +123,7 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600">
           {mode === "login"
-            ? "Informe seu usuario e senha para continuar."
+            ? "Informe seu e-mail ou login e senha para continuar."
             : "Crie uma conta de usuario para realizar agendamentos."}
         </p>
 
@@ -176,7 +173,7 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
                   setUsername(event.target.value);
                   setError("");
                 }}
-                placeholder="Login"
+                placeholder="E-mail ou login"
                 autoComplete="username"
               />
               <Input
@@ -212,7 +209,6 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
             </div>
 
             <div className="mt-4 grid gap-3">
-              <Input value={registerForm.username} onChange={(event) => setRegisterForm((form) => ({ ...form, username: event.target.value }))} placeholder="Login" autoComplete="username" />
               <Input value={registerForm.password} onChange={(event) => setRegisterForm((form) => ({ ...form, password: event.target.value }))} placeholder="Senha" type="password" autoComplete="new-password" />
               <Input value={registerForm.fullName} onChange={(event) => setRegisterForm((form) => ({ ...form, fullName: event.target.value }))} placeholder="Nome completo" autoComplete="name" />
               <Input value={registerForm.nickname} onChange={(event) => setRegisterForm((form) => ({ ...form, nickname: event.target.value }))} placeholder="Apelido" />

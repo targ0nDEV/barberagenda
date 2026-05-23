@@ -22,6 +22,7 @@ export type ExistingBooking = {
   id: string;
   professionalId: string;
   serviceId?: string;
+  customerUserId?: string;
   customerName?: string;
   customerPhone?: string;
   startsAt: Date;

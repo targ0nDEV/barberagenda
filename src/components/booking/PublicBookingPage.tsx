@@ -8,11 +8,13 @@ import { Banknote, CalendarDays, Check, Clock, Scissors, UserRound } from "lucid
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SESSION_STORAGE_KEY } from "@/lib/auth-mock";
 import { addBooking, getBookings } from "@/lib/booking-store";
 import { getProfessionals } from "@/lib/professional-store";
 import { buildWhatsAppConfirmationMessage, getAvailableSlots } from "@/lib/slots";
 import { cn, formatCurrencyBRL, onlyDigits } from "@/lib/utils";
 import type {
+  AppUser,
   BusinessHoursRule,
   ExistingBooking,
   ProfessionalPublicProfile,
@@ -45,10 +47,19 @@ export function PublicBookingPage({
   const [bookingFinished, setBookingFinished] = useState(false);
   const [currentBookings, setCurrentBookings] = useState(bookings);
   const [currentProfessionals, setCurrentProfessionals] = useState(professionals);
+  const [loggedUser, setLoggedUser] = useState<AppUser | null>(null);
 
   useEffect(() => {
     setCurrentBookings(getBookings(bookings));
     setCurrentProfessionals(getProfessionals());
+    const storedUser = window.localStorage.getItem(SESSION_STORAGE_KEY);
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser) as AppUser;
+      setLoggedUser(parsedUser);
+      setCustomerName((currentName) => currentName || parsedUser.name);
+      setCustomerPhone((currentPhone) => currentPhone || parsedUser.phone || "");
+    }
 
     function handleProfessionalsUpdate() {
       setCurrentProfessionals(getProfessionals());
@@ -137,6 +148,7 @@ export function PublicBookingPage({
       id: `book_${Date.now()}`,
       professionalId: selectedProfessional.id,
       serviceId: selectedService.id,
+      customerUserId: loggedUser?.id,
       customerName: customerName.trim(),
       customerPhone: onlyDigits(customerPhone),
       startsAt: selectedSlot.startsAt,

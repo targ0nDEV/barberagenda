@@ -6,6 +6,7 @@ import {
   BarChart3,
   CalendarCheck,
   CreditCard,
+  ChevronDown,
   LogOut,
   Repeat2,
   ShieldCheck,
@@ -40,6 +41,7 @@ export function RoleDashboard() {
   const [adminTab, setAdminTab] = useState<"revenue" | "accounts" | "barbers">("revenue");
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [securityOpen, setSecurityOpen] = useState(false);
   const [accountMessage, setAccountMessage] = useState("");
   const [barberMessage, setBarberMessage] = useState("");
   const [barberForm, setBarberForm] = useState({
@@ -102,7 +104,11 @@ export function RoleDashboard() {
       return bookings.filter((booking) => booking.professionalId === user.professionalId);
     }
 
-    return bookings.filter((booking) => booking.customerPhone === user.phone);
+    return bookings.filter(
+      (booking) =>
+        booking.customerUserId === user.id ||
+        (Boolean(user.phone) && booking.customerPhone === user.phone)
+    );
   }, [bookings, user]);
 
   const revenueCents = bookings
@@ -329,50 +335,64 @@ export function RoleDashboard() {
           />
         </div>
 
-        <section className="mt-5 rounded-md border border-border bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4">
+        <section className="mt-5 rounded-md border border-border bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => setSecurityOpen((current) => !current)}
+            className="flex w-full items-center justify-between gap-3 p-4 text-left"
+            aria-expanded={securityOpen}
+          >
             <div>
-              <h2 className="font-bold">Conta e seguranca</h2>
-              <p className="mt-1 text-sm text-zinc-600">
-                Atualize seus dados de acesso.
-              </p>
+              <h2 className="font-bold">Alterar Senha/Nome</h2>
+              <p className="mt-1 text-sm text-zinc-600">Atualize seus dados de acesso.</p>
             </div>
-            <div className="grid gap-3 lg:grid-cols-2">
-              <form onSubmit={handleNameChange} className="flex w-full flex-col gap-2 md:flex-row">
-                <Input
-                  value={displayName}
-                  onChange={(event) => {
-                    setDisplayName(event.target.value);
-                    setAccountMessage("");
-                  }}
-                  placeholder="Nome"
-                  autoComplete="name"
-                  className="md:flex-1"
-                />
-                <Button type="submit" variant="secondary" className="md:w-36">
-                  Alterar nome
-                </Button>
-              </form>
-              <form onSubmit={handlePasswordChange} className="flex w-full flex-col gap-2 md:flex-row">
-              <Input
-                value={newPassword}
-                onChange={(event) => {
-                  setNewPassword(event.target.value);
-                  setAccountMessage("");
-                }}
-                type="password"
-                placeholder="Nova senha"
-                autoComplete="new-password"
-                className="md:flex-1"
-              />
-              <Button type="submit" className="md:w-36">
-                Trocar senha
-              </Button>
-            </form>
+            <ChevronDown
+              className={cn(
+                "h-5 w-5 text-zinc-500 transition",
+                securityOpen ? "rotate-180" : "rotate-0"
+              )}
+            />
+          </button>
+
+          {securityOpen ? (
+            <div className="border-t border-border p-4">
+              <div className="grid gap-3 lg:grid-cols-2">
+                <form onSubmit={handleNameChange} className="flex w-full flex-col gap-2 md:flex-row">
+                  <Input
+                    value={displayName}
+                    onChange={(event) => {
+                      setDisplayName(event.target.value);
+                      setAccountMessage("");
+                    }}
+                    placeholder="Nome"
+                    autoComplete="name"
+                    className="md:flex-1"
+                  />
+                  <Button type="submit" variant="secondary" className="md:w-36">
+                    Alterar nome
+                  </Button>
+                </form>
+                <form onSubmit={handlePasswordChange} className="flex w-full flex-col gap-2 md:flex-row">
+                  <Input
+                    value={newPassword}
+                    onChange={(event) => {
+                      setNewPassword(event.target.value);
+                      setAccountMessage("");
+                    }}
+                    type="password"
+                    placeholder="Nova senha"
+                    autoComplete="new-password"
+                    className="md:flex-1"
+                  />
+                  <Button type="submit" className="md:w-36">
+                    Trocar senha
+                  </Button>
+                </form>
+              </div>
+              {accountMessage ? (
+                <p className="mt-3 text-sm font-semibold text-emerald-700">{accountMessage}</p>
+              ) : null}
             </div>
-          </div>
-          {accountMessage ? (
-            <p className="mt-3 text-sm font-semibold text-emerald-700">{accountMessage}</p>
           ) : null}
         </section>
 

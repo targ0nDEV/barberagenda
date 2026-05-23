@@ -133,15 +133,14 @@ function saveRegisteredCredentials(credentials: Credential[]) {
 }
 
 export function registerUser(input: {
-  username: string;
   password: string;
   fullName: string;
   nickname: string;
   phone: string;
   email: string;
 }) {
-  const username = input.username.trim().toLowerCase();
   const email = input.email.trim().toLowerCase();
+  const username = email;
   const users = getUsers();
   const credentials = getCredentials();
 
@@ -150,7 +149,7 @@ export function registerUser(input: {
   }
 
   if (credentials.some((credential) => credential.username === username)) {
-    return { ok: false as const, message: "Este login ja esta em uso." };
+    return { ok: false as const, message: "Este e-mail ja esta em uso." };
   }
 
   if (users.some((user) => user.email.toLowerCase() === email)) {
