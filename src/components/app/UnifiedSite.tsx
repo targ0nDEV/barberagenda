@@ -1,23 +1,43 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   CalendarCheck,
-  CheckCircle2,
   Clock,
-  CreditCard,
-  ShieldCheck,
   Sparkles,
-  UserRound
+  UserPlus
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoginPanel } from "@/components/auth/LoginPanel";
 import { RoleDashboard } from "@/components/dashboard/RoleDashboard";
 import { SESSION_STORAGE_KEY } from "@/lib/auth-mock";
 
+const showcase = [
+  {
+    title: "Corte classico",
+    barber: "Joao Barber",
+    image:
+      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    title: "Fade navalhado",
+    barber: "Rafa Fade",
+    image:
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    title: "Barba premium",
+    barber: "Diego Studio",
+    image:
+      "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=80"
+  }
+];
+
 export function UnifiedSite() {
   const [view, setView] = useState<"public" | "login" | "dashboard">("public");
+  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     if (window.localStorage.getItem(SESSION_STORAGE_KEY)) {
@@ -32,6 +52,23 @@ export function UnifiedSite() {
 
     return () => window.removeEventListener("micro-schedule-logout", handleLogout);
   }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % showcase.length);
+    }, 3500);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  function handleScheduleClick() {
+    if (window.localStorage.getItem(SESSION_STORAGE_KEY)) {
+      window.location.href = "/agendamento";
+      return;
+    }
+
+    setView("login");
+  }
 
   if (view === "dashboard") {
     return <RoleDashboard />;
@@ -58,7 +95,7 @@ export function UnifiedSite() {
             onClick={() => setView("login")}
             className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-200 bg-white/90 px-4 text-sm font-bold shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-zinc-950"
           >
-            Entrar
+            Login / Registrar-se
           </button>
         </header>
 
@@ -72,90 +109,95 @@ export function UnifiedSite() {
               Marque seu horario em poucos segundos.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-700">
-              Escolha o profissional, selecione o servico, reserve o melhor horario e decida se quer pagar online ou presencialmente.
+              Entre na sua conta ou registre-se para escolher barbeiro, servico, dia e horario livre.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/agendamento"
+              <button
+                type="button"
+                onClick={handleScheduleClick}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-emerald-700 px-6 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:-translate-y-0.5 hover:bg-emerald-800"
               >
                 Agendar agora
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </button>
               <button
                 type="button"
                 onClick={() => setView("login")}
                 className="inline-flex h-12 items-center justify-center rounded-md border border-zinc-200 bg-white/90 px-6 text-sm font-bold shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-zinc-950"
               >
-                Acessar minha conta
+                Login / Registrar-se
               </button>
             </div>
 
-            <div className="mt-8 grid gap-3 text-sm font-semibold text-zinc-700 sm:grid-cols-3">
-              <TrustItem label="Sem filas no WhatsApp" />
-              <TrustItem label="Lembretes inteligentes" />
-              <TrustItem label="Permissoes por perfil" />
+            <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+              <Feature icon={<CalendarCheck className="h-5 w-5" />} title="Agendamento rapido" />
+              <Feature icon={<Clock className="h-5 w-5" />} title="Horarios livres em tempo real" />
             </div>
           </div>
 
           <div className="relative">
-            <div className="absolute -left-5 top-10 hidden rounded-md bg-white p-3 shadow-xl lg:block">
-              <div className="flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-800">
-                  <UserRound className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold text-zinc-500">Barbeiro</p>
-                  <p className="text-sm font-black">Joao Barber</p>
-                </div>
-              </div>
-            </div>
-
             <div className="rounded-md border border-zinc-200 bg-white/90 p-4 shadow-2xl backdrop-blur">
-              <div className="rounded-md bg-zinc-950 p-5 text-white">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-emerald-200">Proximo horario</p>
-                  <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-200">
-                    Confirmado
-                  </span>
-                </div>
-                <h2 className="mt-4 text-3xl font-black">Corte + barba</h2>
-                <p className="mt-2 text-zinc-300">Hoje as 15:30 com Joao Barber</p>
-                <div className="mt-5 grid grid-cols-3 gap-2">
-                  <MiniStat label="Servico" value="75 min" />
-                  <MiniStat label="Valor" value="R$ 75" />
-                  <MiniStat label="Pago" value="Online" />
+              <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-zinc-950">
+                {showcase.map((item, index) => (
+                  <Image
+                    key={item.title}
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 46vw"
+                    className={`absolute inset-0 h-full w-full object-cover transition duration-700 ${
+                      index === activeSlide ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                    }`}
+                  />
+                ))}
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/15 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="text-sm font-bold text-emerald-200">{showcase[activeSlide].barber}</p>
+                  <h2 className="mt-1 text-3xl font-black">{showcase[activeSlide].title}</h2>
+                  <div className="mt-4 flex gap-2">
+                    {showcase.map((item, index) => (
+                      <button
+                        key={item.title}
+                        type="button"
+                        onClick={() => setActiveSlide(index)}
+                        className={`h-2 rounded-full transition ${
+                          index === activeSlide ? "w-8 bg-emerald-300" : "w-2 bg-white/50"
+                        }`}
+                        aria-label={`Ver ${item.title}`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 grid gap-3">
-                <Feature icon={<CalendarCheck className="h-5 w-5" />} title="Agendamento rapido" />
-                <Feature icon={<Clock className="h-5 w-5" />} title="Horarios livres em tempo real" />
-                <Feature icon={<CreditCard className="h-5 w-5" />} title="Pagamento online ou presencial" />
-                <Feature icon={<ShieldCheck className="h-5 w-5" />} title="Dashboard por hierarquia" />
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-zinc-950 px-5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-zinc-800"
+              >
+                <UserPlus className="h-4 w-4" />
+                Login / Registrar-se
+              </button>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {["Joao", "Rafa", "Diego"].map((name, index) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setActiveSlide(index)}
+                    className={`h-10 rounded-md border text-xs font-bold transition ${
+                      index === activeSlide
+                        ? "border-emerald-700 bg-emerald-700 text-white"
+                        : "border-zinc-200 bg-white text-zinc-700"
+                    }`}
+                  >
+                    {name}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
     </main>
-  );
-}
-
-function TrustItem({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md bg-white/10 p-3">
-      <p className="text-[11px] font-semibold uppercase text-zinc-400">{label}</p>
-      <p className="mt-1 text-sm font-black text-white">{value}</p>
-    </div>
   );
 }
 
