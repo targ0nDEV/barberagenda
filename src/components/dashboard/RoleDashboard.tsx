@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CreditCard,
   ChevronDown,
+  Home,
   LogOut,
   Repeat2,
   ShieldCheck,
@@ -345,6 +346,10 @@ export function RoleDashboard() {
             <h1 className="mt-1 text-2xl font-bold tracking-tight">Ola, {user.name}</h1>
           </div>
           <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => router.push("/?inicio=1")} className="gap-2">
+              <Home className="h-4 w-4" />
+              Inicio
+            </Button>
             <Button variant="secondary" onClick={() => router.push("/agendamento")}>
               Novo agendamento
             </Button>

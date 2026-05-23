@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { addDays, format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
-import { Banknote, CalendarDays, Check, Clock, Scissors, UserRound } from "lucide-react";
+import { Banknote, CalendarDays, Check, Clock, Home, Scissors, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,7 +163,7 @@ export function PublicBookingPage({
 
     setCurrentBookings(nextBookings);
     setBookingFinished(true);
-    setTimeout(() => router.push("/"), 1400);
+    setTimeout(() => router.push("/?inicio=1"), 1400);
   }
 
   return (
@@ -182,6 +182,14 @@ export function PublicBookingPage({
 
       <section className="relative z-10">
         <div className="mx-auto max-w-md px-5 pb-5 pt-10 text-white">
+          <button
+            type="button"
+            onClick={() => router.push("/?inicio=1")}
+            className="mb-6 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+          >
+            <Home className="h-4 w-4" />
+            Inicio
+          </button>
           <p className="text-sm font-medium text-emerald-100">{selectedProfessional.specialty}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">{selectedProfessional.name}</h1>
         </div>

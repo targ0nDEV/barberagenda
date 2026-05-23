@@ -38,13 +38,20 @@ const showcase = [
 export function UnifiedSite() {
   const [view, setView] = useState<"public" | "login" | "dashboard">("public");
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem(SESSION_STORAGE_KEY)) {
+    const hasSession = Boolean(window.localStorage.getItem(SESSION_STORAGE_KEY));
+    const shouldShowPublicHome = new URLSearchParams(window.location.search).get("inicio") === "1";
+
+    setIsLoggedIn(hasSession);
+
+    if (hasSession && !shouldShowPublicHome) {
       setView("dashboard");
     }
 
     function handleLogout() {
+      setIsLoggedIn(false);
       setView("public");
     }
 
@@ -92,10 +99,10 @@ export function UnifiedSite() {
           </Link>
           <button
             type="button"
-            onClick={() => setView("login")}
+            onClick={() => setView(isLoggedIn ? "dashboard" : "login")}
             className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-200 bg-white/90 px-4 text-sm font-bold shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-zinc-950"
           >
-            Login / Registrar-se
+            {isLoggedIn ? "Minha conta" : "Login / Registrar-se"}
           </button>
         </header>
 
@@ -122,10 +129,10 @@ export function UnifiedSite() {
               </button>
               <button
                 type="button"
-                onClick={() => setView("login")}
+                onClick={() => setView(isLoggedIn ? "dashboard" : "login")}
                 className="inline-flex h-12 items-center justify-center rounded-md border border-zinc-200 bg-white/90 px-6 text-sm font-bold shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-zinc-950"
               >
-                Login / Registrar-se
+                {isLoggedIn ? "Minha conta" : "Login / Registrar-se"}
               </button>
             </div>
 
@@ -171,11 +178,11 @@ export function UnifiedSite() {
               </div>
               <button
                 type="button"
-                onClick={() => setView("login")}
+                onClick={() => setView(isLoggedIn ? "dashboard" : "login")}
                 className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-zinc-950 px-5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-zinc-800"
               >
                 <UserPlus className="h-4 w-4" />
-                Login / Registrar-se
+                {isLoggedIn ? "Minha conta" : "Login / Registrar-se"}
               </button>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {["Joao", "Rafa", "Diego"].map((name, index) => (
