@@ -123,6 +123,17 @@ export function RoleDashboard() {
     });
   }
 
+  function cancelBooking(bookingId: string) {
+    setBookings((currentBookings) => {
+      const nextBookings = currentBookings.map((booking) =>
+        booking.id === bookingId ? { ...booking, status: "CANCELLED" as const } : booking
+      );
+
+      saveBookings(nextBookings);
+      return nextBookings;
+    });
+  }
+
   function changeAccountRole(accountId: string, role: AppUser["role"]) {
     setAccounts((currentAccounts) => {
       const nextAccounts = currentAccounts.map((account) => {
@@ -395,6 +406,7 @@ export function RoleDashboard() {
                 canReassign={user.role === "ADMIN" || user.role === "BARBER"}
                 onReassign={reassignBooking}
                 onMarkAsPaid={markBookingAsPaid}
+                onCancel={cancelBooking}
               />
             ))}
           </div>
@@ -526,12 +538,14 @@ function BookingRow({
   booking,
   canReassign,
   onReassign,
-  onMarkAsPaid
+  onMarkAsPaid,
+  onCancel
 }: {
   booking: ExistingBooking;
   canReassign: boolean;
   onReassign: (bookingId: string, professionalId: string) => void;
   onMarkAsPaid: (bookingId: string) => void;
+  onCancel: (bookingId: string) => void;
 }) {
   const professional = professionals.find((item) => item.id === booking.professionalId);
   const service = services.find((item) => item.id === booking.serviceId);
@@ -566,10 +580,22 @@ function BookingRow({
             <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold">
               {formatCurrencyBRL(booking.totalAmountCents ?? 0)}
             </span>
+            <span
+              className={cn(
+                "rounded-md px-2 py-1 text-xs font-semibold",
+                booking.status === "CANCELLED"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-emerald-100 text-emerald-800"
+              )}
+            >
+              {booking.status === "CANCELLED" ? "Cancelado" : "Ativo"}
+            </span>
           </div>
           {canReassign ? (
             <>
-              {booking.paymentMethod === "PAY_IN_PERSON" && booking.paymentStatus !== "PAID" ? (
+              {booking.paymentMethod === "PAY_IN_PERSON" &&
+              booking.paymentStatus !== "PAID" &&
+              booking.status !== "CANCELLED" ? (
                 <button
                   type="button"
                   onClick={() => onMarkAsPaid(booking.id)}
@@ -578,9 +604,19 @@ function BookingRow({
                   Marcar como Pago
                 </button>
               ) : null}
+              {booking.status !== "CANCELLED" ? (
+                <button
+                  type="button"
+                  onClick={() => onCancel(booking.id)}
+                  className="h-11 rounded-md border border-red-200 bg-white px-3 text-sm font-bold text-red-700 transition hover:bg-red-50"
+                >
+                  Cancelar agendamento
+                </button>
+              ) : null}
               <select
                 value={booking.professionalId}
                 onChange={(event) => onReassign(booking.id, event.target.value)}
+                disabled={booking.status === "CANCELLED"}
                 className="h-11 rounded-md border border-border bg-white px-3 text-sm font-semibold outline-none focus:border-primary"
                 aria-label="Alterar barbeiro do agendamento"
               >
