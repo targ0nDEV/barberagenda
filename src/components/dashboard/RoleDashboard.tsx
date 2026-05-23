@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   UserCog,
   UserRound,
-  Scissors
+  Scissors,
+  Trash2
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -290,6 +291,43 @@ export function RoleDashboard() {
     saveProfessionals(nextProfessionals);
   }
 
+  function deleteBarber(professionalId: string) {
+    if (currentProfessionals.length <= 1) {
+      setBarberMessage("Mantenha pelo menos um barbeiro cadastrado.");
+      return;
+    }
+
+    const hasActiveBookings = bookings.some(
+      (booking) =>
+        booking.professionalId === professionalId &&
+        booking.status !== "CANCELLED" &&
+        booking.status !== "COMPLETED"
+    );
+
+    if (hasActiveBookings) {
+      setBarberMessage("Transfira ou cancele os agendamentos ativos antes de excluir este barbeiro.");
+      return;
+    }
+
+    const nextProfessionals = currentProfessionals.filter(
+      (professional) => professional.id !== professionalId
+    );
+
+    setCurrentProfessionals(nextProfessionals);
+    saveProfessionals(nextProfessionals);
+
+    setAccounts((currentAccounts) => {
+      const nextAccounts = currentAccounts.map((account) =>
+        account.professionalId === professionalId
+          ? { ...account, role: "USER" as const, professionalId: undefined }
+          : account
+      );
+      saveRegisteredUsers(nextAccounts);
+      return nextAccounts;
+    });
+    setBarberMessage("Barbeiro excluido com sucesso.");
+  }
+
   if (!user) {
     return (
       <main className="grid min-h-screen place-items-center bg-background px-5">
@@ -479,6 +517,7 @@ export function RoleDashboard() {
                 onFormChange={setBarberForm}
                 onAddBarber={addBarber}
                 onUpdateWeekend={updateWeekend}
+                onDeleteBarber={deleteBarber}
               />
             )}
           </section>
@@ -570,7 +609,8 @@ function BarbersAdminPanel({
   message,
   onFormChange,
   onAddBarber,
-  onUpdateWeekend
+  onUpdateWeekend,
+  onDeleteBarber
 }: {
   professionals: ProfessionalPublicProfile[];
   form: {
@@ -594,6 +634,7 @@ function BarbersAdminPanel({
     field: "worksSaturday" | "worksSunday",
     value: boolean
   ) => void;
+  onDeleteBarber: (professionalId: string) => void;
 }) {
   return (
     <div className="mt-4 grid gap-4">
@@ -649,7 +690,7 @@ function BarbersAdminPanel({
                 Intervalos de {professional.slotInterval} min
               </p>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
               <WeekendToggle
                 label="Agenda aos sabados"
                 checked={Boolean(professional.worksSaturday)}
@@ -660,6 +701,14 @@ function BarbersAdminPanel({
                 checked={Boolean(professional.worksSunday)}
                 onChange={(value) => onUpdateWeekend(professional.id, "worksSunday", value)}
               />
+              <button
+                type="button"
+                onClick={() => onDeleteBarber(professional.id)}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-red-200 bg-white px-3 text-sm font-bold text-red-700 transition hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir
+              </button>
             </div>
           </article>
         ))}
