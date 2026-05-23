@@ -99,7 +99,7 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
         </form>
 
         {showVisitorButton ? (
-          <Button className="mt-6" variant="secondary" onClick={() => router.push("/joao-barber")}>
+          <Button className="mt-6" variant="secondary" onClick={() => router.push("/agendamento")}>
             Continuar como visitante
           </Button>
         ) : null}

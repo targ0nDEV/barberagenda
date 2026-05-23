@@ -91,7 +91,7 @@ export function CheckoutPage() {
           <p className="mt-3 text-sm leading-6 text-zinc-600">
             Nenhum agendamento pendente foi encontrado. Volte para a agenda e selecione um horario com pagamento antecipado.
           </p>
-          <Button className="mt-5 w-full" onClick={() => router.push("/joao-barber")}>
+          <Button className="mt-5 w-full" onClick={() => router.push("/agendamento")}>
             Voltar para agendar
           </Button>
         </section>

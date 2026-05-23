@@ -205,7 +205,7 @@ export function RoleDashboard() {
             <h1 className="mt-1 text-2xl font-bold tracking-tight">Ola, {user.name}</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => router.push("/joao-barber")}>
+            <Button variant="secondary" onClick={() => router.push("/agendamento")}>
               Novo agendamento
             </Button>
             <Button variant="ghost" onClick={logout} className="gap-2">

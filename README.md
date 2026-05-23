@@ -18,6 +18,8 @@ prisma/
   schema.prisma
 src/
   app/
+    agendamento/
+      page.tsx
     [slug]/
       page.tsx
     dashboard/
@@ -65,7 +67,8 @@ Fluxo principal:
 - `/`: site unico. Mostra a pagina publica, abre login no proprio fluxo e exibe o dashboard conforme a hierarquia logada.
 - `/login`: atalho tecnico para login.
 - `/dashboard`: atalho tecnico para area interna.
-- `/joao-barber`: pagina publica de agendamento.
+- `/agendamento`: pagina publica de agendamento.
+- `/joao-barber`: rota antiga mantida como compatibilidade.
 
 Credenciais do MVP:
 
