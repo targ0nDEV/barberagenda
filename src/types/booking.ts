@@ -25,7 +25,7 @@ export type ExistingBooking = {
   startsAt: Date;
   endsAt: Date;
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "NO_SHOW" | "COMPLETED";
-  paymentMethod?: "PAY_ONLINE" | "PAY_IN_PERSON";
+  paymentMethod?: "PAY_IN_PERSON";
   paymentStatus?: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   totalAmountCents?: number;
 };

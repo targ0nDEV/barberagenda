@@ -1,8 +1,6 @@
 import type { ExistingBooking } from "@/types/booking";
 
 const BOOKINGS_STORAGE_KEY = "agende-sua-consulta-bookings";
-const PENDING_CHECKOUT_KEY = "agende-sua-consulta-pending-checkout";
-
 type StoredBooking = Omit<ExistingBooking, "startsAt" | "endsAt"> & {
   startsAt: string;
   endsAt: string;
@@ -62,27 +60,4 @@ export function addBooking(seedBookings: ExistingBooking[], booking: ExistingBoo
   const nextBookings = [...getBookings(seedBookings), booking];
   saveBookings(nextBookings);
   return nextBookings;
-}
-
-export function savePendingCheckout(booking: ExistingBooking) {
-  window.localStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify(serializeBooking(booking)));
-}
-
-export function getPendingCheckout() {
-  const storedBooking = window.localStorage.getItem(PENDING_CHECKOUT_KEY);
-
-  if (!storedBooking) {
-    return null;
-  }
-
-  try {
-    return deserializeBooking(JSON.parse(storedBooking) as StoredBooking);
-  } catch {
-    clearPendingCheckout();
-    return null;
-  }
-}
-
-export function clearPendingCheckout() {
-  window.localStorage.removeItem(PENDING_CHECKOUT_KEY);
 }

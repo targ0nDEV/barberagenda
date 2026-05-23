@@ -8,7 +8,7 @@ MVP SaaS mobile-first para profissionais autonomos venderem servicos por link pu
 - Link publico: escolha de servico, dia, horario livre, nome, WhatsApp e confirmacao.
 - Anti-esquecimento: geracao de template de mensagem para WhatsApp no momento da confirmacao.
 - Login por hierarquia: Administrador, Barbeiro e Usuario.
-- Pagamento: escolha entre pagamento antecipado simulado ou pagamento presencial.
+- Pagamento: agendamento com pagamento presencial e controle posterior de status pelo Admin/Barbeiro.
 - Stack: Next.js App Router, TypeScript, Tailwind CSS, Prisma, SQLite local e NextAuth pronto para evoluir.
 
 ## Estrutura de Pastas

@@ -500,7 +500,7 @@ function BookingRow({
         <div className="flex flex-col gap-2 md:min-w-64">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold">
-              {booking.paymentMethod === "PAY_ONLINE" ? "Antecipado" : "Presencial"}
+              Presencial
             </span>
             <span
               className={cn(

@@ -4,11 +4,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { addDays, format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
-import { Banknote, CalendarDays, Check, Clock, CreditCard, Scissors, UserRound } from "lucide-react";
+import { Banknote, CalendarDays, Check, Clock, Scissors, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { addBooking, getBookings, savePendingCheckout } from "@/lib/booking-store";
+import { addBooking, getBookings } from "@/lib/booking-store";
 import { buildWhatsAppConfirmationMessage, getAvailableSlots } from "@/lib/slots";
 import { cn, formatCurrencyBRL, onlyDigits } from "@/lib/utils";
 import type {
@@ -41,7 +41,6 @@ export function PublicBookingPage({
   const [selectedSlotIso, setSelectedSlotIso] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"PAY_ONLINE" | "PAY_IN_PERSON">("PAY_IN_PERSON");
   const [bookingFinished, setBookingFinished] = useState(false);
   const [currentBookings, setCurrentBookings] = useState(bookings);
 
@@ -92,7 +91,7 @@ export function PublicBookingPage({
       serviceName: selectedService.name,
       customerName: customerName.trim(),
       startsAt: selectedSlot.startsAt,
-      paymentMethod
+      paymentMethod: "PAY_IN_PERSON"
     });
     window.localStorage.setItem(
       "agende-last-whatsapp-notification",
@@ -112,16 +111,10 @@ export function PublicBookingPage({
       startsAt: selectedSlot.startsAt,
       endsAt: selectedSlot.endsAt,
       status: "CONFIRMED",
-      paymentMethod,
-      paymentStatus: paymentMethod === "PAY_ONLINE" ? "PAID" : "PENDING",
+      paymentMethod: "PAY_IN_PERSON",
+      paymentStatus: "PENDING",
       totalAmountCents: selectedService.priceCents
     };
-
-    if (paymentMethod === "PAY_ONLINE") {
-      savePendingCheckout(bookingToCreate);
-      router.push("/checkout");
-      return;
-    }
 
     const nextBookings = addBooking(bookings, bookingToCreate);
 
@@ -318,28 +311,9 @@ export function PublicBookingPage({
             />
           </div>
 
-          <StepHeader icon={<CreditCard className="h-4 w-4" />} title="Pagamento" />
-          <div className="grid grid-cols-2 gap-3">
-            <PaymentOption
-              active={paymentMethod === "PAY_IN_PERSON"}
-              icon={<Banknote className="h-5 w-5" />}
-              title="Presencial"
-              subtitle="Pague no local"
-              onClick={() => {
-                setPaymentMethod("PAY_IN_PERSON");
-                setBookingFinished(false);
-              }}
-            />
-            <PaymentOption
-              active={paymentMethod === "PAY_ONLINE"}
-              icon={<CreditCard className="h-5 w-5" />}
-              title="Antecipado"
-              subtitle="Simular checkout"
-              onClick={() => {
-                setPaymentMethod("PAY_ONLINE");
-                setBookingFinished(false);
-              }}
-            />
+          <StepHeader icon={<Banknote className="h-4 w-4" />} title="Pagamento" />
+          <div className="rounded-md border border-border bg-white p-4 text-sm text-zinc-700 shadow-sm">
+            O pagamento sera realizado presencialmente no local.
           </div>
 
           {bookingFinished ? (
@@ -361,50 +335,16 @@ export function PublicBookingPage({
             </p>
             <p className="truncate text-xs text-zinc-600">
               {selectedSlot
-                ? `${format(selectedSlot.startsAt, "dd/MM")} as ${format(selectedSlot.startsAt, "HH:mm")} - ${
-                    paymentMethod === "PAY_ONLINE" ? "antecipado" : "presencial"
-                  }`
+                ? `${format(selectedSlot.startsAt, "dd/MM")} as ${format(selectedSlot.startsAt, "HH:mm")} - presencial`
                 : "Escolha um horario livre"}
             </p>
           </div>
           <Button className="w-36" disabled={!canConfirm} onClick={handleConfirm}>
-            {paymentMethod === "PAY_ONLINE" ? "Pagar" : "Confirmar"}
+            Confirmar
           </Button>
         </div>
       </footer>
     </main>
-  );
-}
-
-function PaymentOption({
-  active,
-  icon,
-  title,
-  subtitle,
-  onClick
-}: {
-  active: boolean;
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-md border bg-white p-4 text-left shadow-sm transition",
-        active ? "border-primary ring-2 ring-primary/15" : "border-border"
-      )}
-    >
-      <span className="flex items-center justify-between gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-md bg-zinc-950 text-white">{icon}</span>
-        {active ? <Check className="h-5 w-5 text-primary" /> : null}
-      </span>
-      <span className="mt-3 block text-sm font-bold">{title}</span>
-      <span className="mt-0.5 block text-xs text-zinc-600">{subtitle}</span>
-    </button>
   );
 }
 

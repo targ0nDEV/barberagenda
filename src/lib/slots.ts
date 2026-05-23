@@ -96,14 +96,11 @@ export function buildWhatsAppConfirmationMessage(input: {
   serviceName: string;
   customerName: string;
   startsAt: Date;
-  paymentMethod?: "PAY_ONLINE" | "PAY_IN_PERSON";
+  paymentMethod?: "PAY_IN_PERSON";
 }) {
   const day = format(input.startsAt, "dd/MM/yyyy");
   const time = format(input.startsAt, "HH:mm");
-  const paymentText =
-    input.paymentMethod === "PAY_ONLINE"
-      ? "Pagamento antecipado confirmado pelo site."
-      : "Pagamento combinado para ser feito presencialmente.";
+  const paymentText = "Pagamento combinado para ser feito presencialmente.";
 
   return `Oi, ${input.customerName}! Seu agendamento com ${input.professionalName} foi confirmado: ${input.serviceName} em ${day} as ${time}. ${paymentText} Responda esta mensagem se precisar remarcar.`;
 }

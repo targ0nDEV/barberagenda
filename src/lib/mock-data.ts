@@ -151,7 +151,7 @@ export const bookings: ExistingBooking[] = [
     startsAt: set(today, { hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }),
     endsAt: set(today, { hours: 10, minutes: 45, seconds: 0, milliseconds: 0 }),
     status: "CONFIRMED",
-    paymentMethod: "PAY_ONLINE",
+    paymentMethod: "PAY_IN_PERSON",
     paymentStatus: "PAID",
     totalAmountCents: 4500
   },
@@ -177,7 +177,7 @@ export const bookings: ExistingBooking[] = [
     startsAt: set(tomorrow, { hours: 11, minutes: 0, seconds: 0, milliseconds: 0 }),
     endsAt: set(tomorrow, { hours: 12, minutes: 15, seconds: 0, milliseconds: 0 }),
     status: "CONFIRMED",
-    paymentMethod: "PAY_ONLINE",
+    paymentMethod: "PAY_IN_PERSON",
     paymentStatus: "PAID",
     totalAmountCents: 7500
   },
@@ -203,7 +203,7 @@ export const bookings: ExistingBooking[] = [
     startsAt: set(today, { hours: 17, minutes: 0, seconds: 0, milliseconds: 0 }),
     endsAt: set(today, { hours: 17, minutes: 45, seconds: 0, milliseconds: 0 }),
     status: "CONFIRMED",
-    paymentMethod: "PAY_ONLINE",
+    paymentMethod: "PAY_IN_PERSON",
     paymentStatus: "PAID",
     totalAmountCents: 4500
   },
