@@ -5,7 +5,6 @@ export const SESSION_STORAGE_KEY = "micro-schedule-user";
 export const PASSWORD_STORAGE_KEY = "micro-schedule-passwords";
 export const REGISTERED_USERS_STORAGE_KEY = "agende-registered-users";
 export const REGISTERED_CREDENTIALS_STORAGE_KEY = "agende-registered-credentials";
-export const EMAIL_CONFIRMATIONS_STORAGE_KEY = "agende-email-confirmations";
 
 export const defaultCredentials = [
   {
@@ -31,15 +30,38 @@ export type Credential = {
   userId: string;
 };
 
-type EmailConfirmation = {
-  token: string;
-  userId: string;
-  email: string;
-  createdAt: string;
-  confirmationUrl: string;
-};
+const BLOCKED_EMAIL_DOMAINS = new Set([
+  "example.com",
+  "example.com.br",
+  "test.com",
+  "teste.com",
+  "fake.com",
+  "email.com",
+  "mailinator.com",
+  "tempmail.com",
+  "10minutemail.com",
+  "guerrillamail.com"
+]);
 
-export type PendingEmailConfirmation = EmailConfirmation;
+export function isAllowedEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+  const domain = normalizedEmail.split("@")[1];
+
+  if (!emailPattern.test(normalizedEmail) || !domain) {
+    return false;
+  }
+
+  if (BLOCKED_EMAIL_DOMAINS.has(domain)) {
+    return false;
+  }
+
+  if (domain.includes("fake") || domain.includes("teste") || domain.includes("test")) {
+    return false;
+  }
+
+  return true;
+}
 
 export function getCredentials() {
   if (typeof window === "undefined") {
@@ -110,40 +132,6 @@ function saveRegisteredCredentials(credentials: Credential[]) {
   window.localStorage.setItem(REGISTERED_CREDENTIALS_STORAGE_KEY, JSON.stringify(credentials));
 }
 
-export function confirmEmailToken(token: string) {
-  const storedConfirmations = window.localStorage.getItem(EMAIL_CONFIRMATIONS_STORAGE_KEY);
-  const confirmations = storedConfirmations
-    ? (JSON.parse(storedConfirmations) as EmailConfirmation[])
-    : [];
-  const confirmation = confirmations.find((item) => item.token === token);
-
-  if (!confirmation) {
-    return false;
-  }
-
-  const users = getUsers();
-  const updatedUsers = users.map((user) =>
-    user.id === confirmation.userId ? { ...user, emailVerified: true } : user
-  );
-  const remainingConfirmations = confirmations.filter((item) => item.token !== token);
-
-  saveRegisteredUsers(updatedUsers);
-  window.localStorage.setItem(EMAIL_CONFIRMATIONS_STORAGE_KEY, JSON.stringify(remainingConfirmations));
-
-  return true;
-}
-
-export function getPendingEmailConfirmations() {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  const storedConfirmations = window.localStorage.getItem(EMAIL_CONFIRMATIONS_STORAGE_KEY);
-  return storedConfirmations
-    ? (JSON.parse(storedConfirmations) as PendingEmailConfirmation[])
-    : [];
-}
-
 export function registerUser(input: {
   username: string;
   password: string;
@@ -156,6 +144,10 @@ export function registerUser(input: {
   const email = input.email.trim().toLowerCase();
   const users = getUsers();
   const credentials = getCredentials();
+
+  if (!isAllowedEmail(email)) {
+    return { ok: false as const, message: "Informe um e-mail real e valido." };
+  }
 
   if (credentials.some((credential) => credential.username === username)) {
     return { ok: false as const, message: "Este login ja esta em uso." };
@@ -172,38 +164,19 @@ export function registerUser(input: {
     email,
     phone: input.phone.replace(/\D/g, ""),
     role: "USER",
-    emailVerified: false
+    emailVerified: true
   };
   const credential: Credential = {
     username,
     password: input.password,
     userId: user.id
   };
-  const token = `confirm_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const origin = window.location.origin;
-  const confirmation: EmailConfirmation = {
-    token,
-    userId: user.id,
-    email,
-    createdAt: new Date().toISOString(),
-    confirmationUrl: `${origin}/login?confirmEmail=${encodeURIComponent(token)}`
-  };
-  const storedConfirmations = window.localStorage.getItem(EMAIL_CONFIRMATIONS_STORAGE_KEY);
-  const confirmations = storedConfirmations
-    ? (JSON.parse(storedConfirmations) as EmailConfirmation[])
-    : [];
-
   saveRegisteredUsers([...users, user]);
   saveRegisteredCredentials([...getRegisteredCredentials(), credential]);
-  window.localStorage.setItem(
-    EMAIL_CONFIRMATIONS_STORAGE_KEY,
-    JSON.stringify([...confirmations, confirmation])
-  );
 
   return {
     ok: true as const,
-    message: "Cadastro criado. Enviamos a confirmacao para o e-mail informado.",
-    confirmationUrl: confirmation.confirmationUrl
+    message: "Cadastro criado com sucesso. Voce ja pode fazer login."
   };
 }
 

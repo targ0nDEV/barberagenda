@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { CalendarCheck, LockKeyhole, LogIn, UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   SESSION_STORAGE_KEY,
-  confirmEmailToken,
   getCredentials,
   getUsers,
+  isAllowedEmail,
   registerUser
 } from "@/lib/auth-mock";
 
@@ -34,17 +34,6 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [confirmationUrl, setConfirmationUrl] = useState("");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("confirmEmail");
-
-    if (token && confirmEmailToken(token)) {
-      setSuccess("E-mail confirmado com sucesso. Voce ja pode fazer login.");
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-  }, []);
 
   function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,11 +50,6 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
       return;
     }
 
-    if (user.emailVerified === false) {
-      setError("Confirme seu e-mail antes de acessar a conta.");
-      return;
-    }
-
     window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
     onSuccess?.();
 
@@ -74,15 +58,13 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
     }
   }
 
-  async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
+  function handleRegister(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const phoneDigits = registerForm.phone.replace(/\D/g, "");
-    const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.email.trim());
 
     setError("");
     setSuccess("");
-    setConfirmationUrl("");
 
     if (
       registerForm.username.trim().length < 3 ||
@@ -99,8 +81,8 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
       return;
     }
 
-    if (!emailIsValid) {
-      setError("Informe um e-mail valido.");
+    if (!isAllowedEmail(registerForm.email)) {
+      setError("Informe um e-mail real e valido.");
       return;
     }
 
@@ -116,31 +98,6 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
     }
 
     setSuccess(result.message);
-    setConfirmationUrl(result.confirmationUrl);
-
-    try {
-      const response = await fetch("/api/send-confirmation-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email: registerForm.email.trim(),
-          name: registerForm.fullName.trim(),
-          confirmationUrl: result.confirmationUrl
-        })
-      });
-      const data = (await response.json()) as { ok?: boolean; simulated?: boolean; message?: string };
-
-      if (!response.ok || !data.ok) {
-        setSuccess("Cadastro criado, mas nao foi possivel enviar o e-mail automaticamente. Use o link de confirmacao de teste abaixo.");
-      } else if (data.simulated) {
-        setSuccess("Cadastro criado. Configure RESEND_API_KEY na Vercel para envio real. Use o link de confirmacao de teste abaixo.");
-      }
-    } catch {
-      setSuccess("Cadastro criado, mas o envio de e-mail falhou. Use o link de confirmacao de teste abaixo.");
-    }
-
     setMode("login");
     setUsername(registerForm.username.trim().toLowerCase());
     setRegisterForm({
@@ -236,14 +193,6 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
 
             {error ? <p className="mt-3 text-sm font-semibold text-red-600">{error}</p> : null}
             {success ? <p className="mt-3 text-sm font-semibold text-emerald-700">{success}</p> : null}
-            {confirmationUrl ? (
-              <a
-                href={confirmationUrl}
-                className="mt-2 block rounded-md bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
-              >
-                Confirmar e-mail de teste
-              </a>
-            ) : null}
 
             <Button type="submit" className="mt-4 w-full gap-2 shadow-lg shadow-emerald-900/10">
               <LogIn className="h-4 w-4" />

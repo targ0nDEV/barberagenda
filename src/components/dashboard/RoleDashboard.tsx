@@ -22,9 +22,7 @@ import {
   changePassword,
   getRoleLabel,
   getUsernameByUserId,
-  getPendingEmailConfirmations,
   getUsers,
-  type PendingEmailConfirmation,
   saveRegisteredUsers
 } from "@/lib/auth-mock";
 import { bookings as initialBookings, professionals, services } from "@/lib/mock-data";
@@ -40,7 +38,6 @@ export function RoleDashboard() {
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [accountMessage, setAccountMessage] = useState("");
-  const [pendingConfirmations, setPendingConfirmations] = useState<PendingEmailConfirmation[]>([]);
 
   useEffect(() => {
     const storedUser = window.localStorage.getItem(SESSION_STORAGE_KEY);
@@ -55,7 +52,6 @@ export function RoleDashboard() {
     setDisplayName(parsedUser.name);
     setBookings(getBookings(initialBookings));
     setAccounts(getUsers());
-    setPendingConfirmations(getPendingEmailConfirmations());
 
     function handleBookingsUpdate() {
       setBookings(getBookings(initialBookings));
@@ -63,7 +59,6 @@ export function RoleDashboard() {
 
     function handleUsersUpdate() {
       setAccounts(getUsers());
-      setPendingConfirmations(getPendingEmailConfirmations());
     }
 
     window.addEventListener("agende-bookings-updated", handleBookingsUpdate);
@@ -81,7 +76,9 @@ export function RoleDashboard() {
     }
 
     if (user.role === "ADMIN") {
-      return bookings;
+      return bookings.filter(
+        (booking) => booking.paymentStatus !== "PAID" && booking.status !== "CANCELLED"
+      );
     }
 
     if (user.role === "BARBER") {
@@ -266,7 +263,7 @@ export function RoleDashboard() {
           />
           <MetricCard
             icon={<CreditCard className="h-5 w-5" />}
-            label="Pagos online"
+            label="Pagos"
             value={visibleBookings.filter((booking) => booking.paymentStatus === "PAID").length.toString()}
           />
           <MetricCard
@@ -360,7 +357,7 @@ export function RoleDashboard() {
 
             {adminTab === "revenue" ? (
               <div className="mt-4 grid gap-3 md:grid-cols-3">
-                <AdminRevenueItem label="Recebido online" value={formatCurrencyBRL(revenueCents)} />
+                <AdminRevenueItem label="Recebido" value={formatCurrencyBRL(revenueCents)} />
                 <AdminRevenueItem
                   label="A receber presencial"
                   value={formatCurrencyBRL(
@@ -380,15 +377,12 @@ export function RoleDashboard() {
                 />
               </div>
             ) : (
-              <>
-                <PendingConfirmationsPanel confirmations={pendingConfirmations} />
-                <AccountsAdminPanel
-                  accounts={accounts}
-                  currentUserId={user.id}
-                  onChangeRole={changeAccountRole}
-                  onDeleteAccount={deleteAccount}
-                />
-              </>
+              <AccountsAdminPanel
+                accounts={accounts}
+                currentUserId={user.id}
+                onChangeRole={changeAccountRole}
+                onDeleteAccount={deleteAccount}
+              />
             )}
           </section>
         ) : null}
@@ -413,49 +407,6 @@ export function RoleDashboard() {
         </section>
       </section>
     </main>
-  );
-}
-
-function PendingConfirmationsPanel({
-  confirmations
-}: {
-  confirmations: PendingEmailConfirmation[];
-}) {
-  return (
-    <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4">
-      <div className="flex flex-col gap-1">
-        <p className="font-bold text-amber-950">Confirmacoes de e-mail pendentes</p>
-        <p className="text-sm text-amber-800">
-          Contas registradas que ainda nao confirmaram o e-mail.
-        </p>
-      </div>
-
-      {confirmations.length > 0 ? (
-        <div className="mt-3 grid gap-2">
-          {confirmations.map((confirmation) => (
-            <div
-              key={confirmation.token}
-              className="rounded-md border border-amber-200 bg-white p-3 text-sm"
-            >
-              <p className="font-bold text-zinc-950">{confirmation.email}</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                Criado em {new Date(confirmation.createdAt).toLocaleString("pt-BR")}
-              </p>
-              <a
-                href={confirmation.confirmationUrl}
-                className="mt-2 inline-flex text-xs font-bold text-emerald-700"
-              >
-                Abrir link de confirmacao
-              </a>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="mt-3 text-sm font-semibold text-amber-900">
-          Nenhuma confirmacao pendente no momento.
-        </p>
-      )}
-    </div>
   );
 }
 

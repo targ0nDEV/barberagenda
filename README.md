@@ -81,16 +81,8 @@ Registro de usuarios:
 - A tela de login possui a opcao `Registrar-se`.
 - Novas contas entram com hierarquia padrao `Usuario`.
 - Campos obrigatorios: login, senha, nome completo, apelido, celular com DDD e e-mail valido.
-- O MVP envia confirmacao de e-mail via API route quando `RESEND_API_KEY` esta configurada.
-- Sem `RESEND_API_KEY`, o envio fica simulado e mostra um link de confirmacao de teste.
-- O Administrador ve as confirmacoes pendentes em `Administracao > Contas`.
-
-Variaveis para envio real na Vercel:
-
-```txt
-RESEND_API_KEY=chave_da_resend
-EMAIL_FROM="Agende sua consulta <noreply@seudominio.com>"
-```
+- O e-mail nao pode ser repetido.
+- O sistema bloqueia formatos invalidos e dominios comuns de teste/ficticios.
 
 ## Deploy na Vercel
 
