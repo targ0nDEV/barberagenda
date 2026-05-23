@@ -17,8 +17,15 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getBookings, saveBookings } from "@/lib/booking-store";
-import { SESSION_STORAGE_KEY, changePassword, getRoleLabel, getUsernameByUserId } from "@/lib/auth-mock";
-import { bookings as initialBookings, professionals, services, users as initialUsers } from "@/lib/mock-data";
+import {
+  SESSION_STORAGE_KEY,
+  changePassword,
+  getRoleLabel,
+  getUsernameByUserId,
+  getUsers,
+  saveRegisteredUsers
+} from "@/lib/auth-mock";
+import { bookings as initialBookings, professionals, services } from "@/lib/mock-data";
 import { cn, formatCurrencyBRL } from "@/lib/utils";
 import type { AppUser, ExistingBooking } from "@/types/booking";
 
@@ -26,7 +33,7 @@ export function RoleDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<AppUser | null>(null);
   const [bookings, setBookings] = useState(initialBookings);
-  const [accounts, setAccounts] = useState(initialUsers);
+  const [accounts, setAccounts] = useState<AppUser[]>([]);
   const [adminTab, setAdminTab] = useState<"revenue" | "accounts">("revenue");
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -44,14 +51,23 @@ export function RoleDashboard() {
     setUser(parsedUser);
     setDisplayName(parsedUser.name);
     setBookings(getBookings(initialBookings));
+    setAccounts(getUsers());
 
     function handleBookingsUpdate() {
       setBookings(getBookings(initialBookings));
     }
 
-    window.addEventListener("agende-bookings-updated", handleBookingsUpdate);
+    function handleUsersUpdate() {
+      setAccounts(getUsers());
+    }
 
-    return () => window.removeEventListener("agende-bookings-updated", handleBookingsUpdate);
+    window.addEventListener("agende-bookings-updated", handleBookingsUpdate);
+    window.addEventListener("agende-users-updated", handleUsersUpdate);
+
+    return () => {
+      window.removeEventListener("agende-bookings-updated", handleBookingsUpdate);
+      window.removeEventListener("agende-users-updated", handleUsersUpdate);
+    };
   }, [router]);
 
   const visibleBookings = useMemo(() => {
@@ -103,8 +119,8 @@ export function RoleDashboard() {
   }
 
   function changeAccountRole(accountId: string, role: AppUser["role"]) {
-    setAccounts((currentAccounts) =>
-      currentAccounts.map((account) => {
+    setAccounts((currentAccounts) => {
+      const nextAccounts = currentAccounts.map((account) => {
         if (account.id !== accountId) {
           return account;
         }
@@ -125,8 +141,11 @@ export function RoleDashboard() {
               ? account.professionalId ?? availableProfessional?.id ?? professionals[0]?.id
               : undefined
         };
-      })
-    );
+      });
+
+      saveRegisteredUsers(nextAccounts);
+      return nextAccounts;
+    });
   }
 
   function deleteAccount(accountId: string) {
@@ -135,7 +154,11 @@ export function RoleDashboard() {
       return;
     }
 
-    setAccounts((currentAccounts) => currentAccounts.filter((account) => account.id !== accountId));
+    setAccounts((currentAccounts) => {
+      const nextAccounts = currentAccounts.filter((account) => account.id !== accountId);
+      saveRegisteredUsers(nextAccounts);
+      return nextAccounts;
+    });
     setAccountMessage("Conta excluida com sucesso.");
   }
 
@@ -181,9 +204,13 @@ export function RoleDashboard() {
     };
 
     setUser(updatedUser);
-    setAccounts((currentAccounts) =>
-      currentAccounts.map((account) => (account.id === updatedUser.id ? updatedUser : account))
-    );
+    setAccounts((currentAccounts) => {
+      const nextAccounts = currentAccounts.map((account) =>
+        account.id === updatedUser.id ? updatedUser : account
+      );
+      saveRegisteredUsers(nextAccounts);
+      return nextAccounts;
+    });
     window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedUser));
     setAccountMessage("Nome alterado com sucesso.");
   }

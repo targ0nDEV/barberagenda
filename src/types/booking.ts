@@ -35,10 +35,12 @@ export type UserRole = "ADMIN" | "BARBER" | "USER";
 export type AppUser = {
   id: string;
   name: string;
+  nickname?: string;
   email: string;
   phone?: string;
   role: UserRole;
   professionalId?: string;
+  emailVerified?: boolean;
 };
 
 export type BusinessHoursRule = {

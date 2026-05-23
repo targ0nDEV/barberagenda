@@ -70,35 +70,40 @@ export const users: AppUser[] = [
     id: "user_admin",
     name: "Lucas",
     email: "admin@barber.app",
-    role: "ADMIN"
+    role: "ADMIN",
+    emailVerified: true
   },
   {
     id: "user_barber_joao",
     name: "Joao Barber",
     email: "joao@barber.app",
     role: "BARBER",
-    professionalId: "prof_joao"
+    professionalId: "prof_joao",
+    emailVerified: true
   },
   {
     id: "user_cliente",
     name: "Lucas Cliente",
     email: "cliente@email.com",
     phone: "11999990000",
-    role: "USER"
+    role: "USER",
+    emailVerified: true
   },
   {
     id: "user_maria",
     name: "Maria Santos",
     email: "maria@email.com",
     phone: "11988880000",
-    role: "USER"
+    role: "USER",
+    emailVerified: true
   },
   {
     id: "user_carlos",
     name: "Carlos Lima",
     email: "carlos@email.com",
     phone: "11977770000",
-    role: "USER"
+    role: "USER",
+    emailVerified: true
   }
 ];
 

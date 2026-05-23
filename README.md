@@ -76,6 +76,13 @@ Credenciais do MVP:
 - Barbeiro: `barber` / `barber`
 - Usuario: `usuario` / `usuario`
 
+Registro de usuarios:
+
+- A tela de login possui a opcao `Registrar-se`.
+- Novas contas entram com hierarquia padrao `Usuario`.
+- Campos obrigatorios: login, senha, nome completo, apelido, celular com DDD e e-mail valido.
+- O MVP gera uma confirmacao de e-mail simulada no navegador. Para envio real em producao, conecte um provedor como Resend ou SendGrid via API route.
+
 ## Deploy na Vercel
 
 O projeto ja esta preparado para deploy na Vercel.
