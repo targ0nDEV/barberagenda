@@ -74,7 +74,7 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
     }
   }
 
-  function handleRegister(event: React.FormEvent<HTMLFormElement>) {
+  async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const phoneDigits = registerForm.phone.replace(/\D/g, "");
@@ -117,6 +117,30 @@ export function LoginPanel({ onSuccess, redirectTo = "/dashboard", showVisitorBu
 
     setSuccess(result.message);
     setConfirmationUrl(result.confirmationUrl);
+
+    try {
+      const response = await fetch("/api/send-confirmation-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: registerForm.email.trim(),
+          name: registerForm.fullName.trim(),
+          confirmationUrl: result.confirmationUrl
+        })
+      });
+      const data = (await response.json()) as { ok?: boolean; simulated?: boolean; message?: string };
+
+      if (!response.ok || !data.ok) {
+        setSuccess("Cadastro criado, mas nao foi possivel enviar o e-mail automaticamente. Use o link de confirmacao de teste abaixo.");
+      } else if (data.simulated) {
+        setSuccess("Cadastro criado. Configure RESEND_API_KEY na Vercel para envio real. Use o link de confirmacao de teste abaixo.");
+      }
+    } catch {
+      setSuccess("Cadastro criado, mas o envio de e-mail falhou. Use o link de confirmacao de teste abaixo.");
+    }
+
     setMode("login");
     setUsername(registerForm.username.trim().toLowerCase());
     setRegisterForm({

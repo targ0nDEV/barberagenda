@@ -39,6 +39,8 @@ type EmailConfirmation = {
   confirmationUrl: string;
 };
 
+export type PendingEmailConfirmation = EmailConfirmation;
+
 export function getCredentials() {
   if (typeof window === "undefined") {
     return defaultCredentials;
@@ -129,6 +131,17 @@ export function confirmEmailToken(token: string) {
   window.localStorage.setItem(EMAIL_CONFIRMATIONS_STORAGE_KEY, JSON.stringify(remainingConfirmations));
 
   return true;
+}
+
+export function getPendingEmailConfirmations() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const storedConfirmations = window.localStorage.getItem(EMAIL_CONFIRMATIONS_STORAGE_KEY);
+  return storedConfirmations
+    ? (JSON.parse(storedConfirmations) as PendingEmailConfirmation[])
+    : [];
 }
 
 export function registerUser(input: {
