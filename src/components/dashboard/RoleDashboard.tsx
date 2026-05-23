@@ -10,13 +10,15 @@ import {
   Repeat2,
   ShieldCheck,
   UserCog,
-  UserRound
+  UserRound,
+  Scissors
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getBookings, saveBookings } from "@/lib/booking-store";
+import { buildSlug, getProfessionals, saveProfessionals } from "@/lib/professional-store";
 import {
   SESSION_STORAGE_KEY,
   changePassword,
@@ -27,17 +29,25 @@ import {
 } from "@/lib/auth-mock";
 import { bookings as initialBookings, professionals, services } from "@/lib/mock-data";
 import { cn, formatCurrencyBRL } from "@/lib/utils";
-import type { AppUser, ExistingBooking } from "@/types/booking";
+import type { AppUser, ExistingBooking, ProfessionalPublicProfile } from "@/types/booking";
 
 export function RoleDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<AppUser | null>(null);
   const [bookings, setBookings] = useState(initialBookings);
   const [accounts, setAccounts] = useState<AppUser[]>([]);
-  const [adminTab, setAdminTab] = useState<"revenue" | "accounts">("revenue");
+  const [currentProfessionals, setCurrentProfessionals] = useState<ProfessionalPublicProfile[]>(professionals);
+  const [adminTab, setAdminTab] = useState<"revenue" | "accounts" | "barbers">("revenue");
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [accountMessage, setAccountMessage] = useState("");
+  const [barberMessage, setBarberMessage] = useState("");
+  const [barberForm, setBarberForm] = useState({
+    name: "",
+    specialty: "",
+    photoUrl: "",
+    whatsapp: ""
+  });
 
   useEffect(() => {
     const storedUser = window.localStorage.getItem(SESSION_STORAGE_KEY);
@@ -52,6 +62,7 @@ export function RoleDashboard() {
     setDisplayName(parsedUser.name);
     setBookings(getBookings(initialBookings));
     setAccounts(getUsers());
+    setCurrentProfessionals(getProfessionals());
 
     function handleBookingsUpdate() {
       setBookings(getBookings(initialBookings));
@@ -61,12 +72,18 @@ export function RoleDashboard() {
       setAccounts(getUsers());
     }
 
+    function handleProfessionalsUpdate() {
+      setCurrentProfessionals(getProfessionals());
+    }
+
     window.addEventListener("agende-bookings-updated", handleBookingsUpdate);
     window.addEventListener("agende-users-updated", handleUsersUpdate);
+    window.addEventListener("agende-professionals-updated", handleProfessionalsUpdate);
 
     return () => {
       window.removeEventListener("agende-bookings-updated", handleBookingsUpdate);
       window.removeEventListener("agende-users-updated", handleUsersUpdate);
+      window.removeEventListener("agende-professionals-updated", handleProfessionalsUpdate);
     };
   }, [router]);
 
@@ -138,7 +155,7 @@ export function RoleDashboard() {
           return account;
         }
 
-        const availableProfessional = professionals.find(
+        const availableProfessional = currentProfessionals.find(
           (professional) =>
             !currentAccounts.some(
               (candidate) =>
@@ -151,7 +168,7 @@ export function RoleDashboard() {
           role,
           professionalId:
             role === "BARBER"
-              ? account.professionalId ?? availableProfessional?.id ?? professionals[0]?.id
+              ? account.professionalId ?? availableProfessional?.id ?? currentProfessionals[0]?.id
               : undefined
         };
       });
@@ -226,6 +243,45 @@ export function RoleDashboard() {
     });
     window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedUser));
     setAccountMessage("Nome alterado com sucesso.");
+  }
+
+  function addBarber(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (barberForm.name.trim().length < 2 || barberForm.specialty.trim().length < 2) {
+      setBarberMessage("Informe nome e especialidade do barbeiro.");
+      return;
+    }
+
+    const slugBase = buildSlug(barberForm.name);
+    const barber: ProfessionalPublicProfile = {
+      id: `prof_${Date.now()}`,
+      name: barberForm.name.trim(),
+      slug: currentProfessionals.some((item) => item.slug === slugBase)
+        ? `${slugBase}-${Date.now()}`
+        : slugBase,
+      specialty: barberForm.specialty.trim(),
+      photoUrl: barberForm.photoUrl.trim() || undefined,
+      whatsapp: barberForm.whatsapp.replace(/\D/g, "") || "5516997483100",
+      slotInterval: 30,
+      worksSaturday: false,
+      worksSunday: false
+    };
+    const nextProfessionals = [...currentProfessionals, barber];
+
+    setCurrentProfessionals(nextProfessionals);
+    saveProfessionals(nextProfessionals);
+    setBarberForm({ name: "", specialty: "", photoUrl: "", whatsapp: "" });
+    setBarberMessage("Barbeiro cadastrado com sucesso.");
+  }
+
+  function updateWeekend(professionalId: string, field: "worksSaturday" | "worksSunday", value: boolean) {
+    const nextProfessionals = currentProfessionals.map((professional) =>
+      professional.id === professionalId ? { ...professional, [field]: value } : professional
+    );
+
+    setCurrentProfessionals(nextProfessionals);
+    saveProfessionals(nextProfessionals);
   }
 
   if (!user) {
@@ -326,12 +382,14 @@ export function RoleDashboard() {
               <div className="flex items-center gap-2">
                 {adminTab === "revenue" ? (
                   <BarChart3 className="h-5 w-5 text-emerald-700" />
+                ) : adminTab === "barbers" ? (
+                  <Scissors className="h-5 w-5 text-emerald-700" />
                 ) : (
                   <UserCog className="h-5 w-5 text-emerald-700" />
                 )}
                 <h2 className="font-bold">Administracao</h2>
               </div>
-              <div className="grid grid-cols-2 rounded-md bg-zinc-100 p-1">
+              <div className="grid grid-cols-3 rounded-md bg-zinc-100 p-1">
                 <button
                   type="button"
                   onClick={() => setAdminTab("revenue")}
@@ -351,6 +409,16 @@ export function RoleDashboard() {
                   )}
                 >
                   Contas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminTab("barbers")}
+                  className={cn(
+                    "h-10 rounded-md px-3 text-sm font-bold transition",
+                    adminTab === "barbers" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600"
+                  )}
+                >
+                  Barbeiros
                 </button>
               </div>
             </div>
@@ -376,12 +444,21 @@ export function RoleDashboard() {
                   )}
                 />
               </div>
-            ) : (
+            ) : adminTab === "accounts" ? (
               <AccountsAdminPanel
                 accounts={accounts}
                 currentUserId={user.id}
                 onChangeRole={changeAccountRole}
                 onDeleteAccount={deleteAccount}
+              />
+            ) : (
+              <BarbersAdminPanel
+                professionals={currentProfessionals}
+                form={barberForm}
+                message={barberMessage}
+                onFormChange={setBarberForm}
+                onAddBarber={addBarber}
+                onUpdateWeekend={updateWeekend}
               />
             )}
           </section>
@@ -397,6 +474,7 @@ export function RoleDashboard() {
               <BookingRow
                 key={booking.id}
                 booking={booking}
+                professionals={currentProfessionals}
                 canReassign={user.role === "ADMIN" || user.role === "BARBER"}
                 onReassign={reassignBooking}
                 onMarkAsPaid={markBookingAsPaid}
@@ -466,6 +544,132 @@ function AccountsAdminPanel({
   );
 }
 
+function BarbersAdminPanel({
+  professionals,
+  form,
+  message,
+  onFormChange,
+  onAddBarber,
+  onUpdateWeekend
+}: {
+  professionals: ProfessionalPublicProfile[];
+  form: {
+    name: string;
+    specialty: string;
+    photoUrl: string;
+    whatsapp: string;
+  };
+  message: string;
+  onFormChange: React.Dispatch<
+    React.SetStateAction<{
+      name: string;
+      specialty: string;
+      photoUrl: string;
+      whatsapp: string;
+    }>
+  >;
+  onAddBarber: (event: React.FormEvent<HTMLFormElement>) => void;
+  onUpdateWeekend: (
+    professionalId: string,
+    field: "worksSaturday" | "worksSunday",
+    value: boolean
+  ) => void;
+}) {
+  return (
+    <div className="mt-4 grid gap-4">
+      <form onSubmit={onAddBarber} className="rounded-md border border-border bg-zinc-50 p-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          <Input
+            value={form.name}
+            onChange={(event) => onFormChange((current) => ({ ...current, name: event.target.value }))}
+            placeholder="Nome do barbeiro"
+            autoComplete="name"
+          />
+          <Input
+            value={form.specialty}
+            onChange={(event) =>
+              onFormChange((current) => ({ ...current, specialty: event.target.value }))
+            }
+            placeholder="Especialidade"
+          />
+          <Input
+            value={form.whatsapp}
+            onChange={(event) =>
+              onFormChange((current) => ({ ...current, whatsapp: event.target.value }))
+            }
+            placeholder="WhatsApp com DDD"
+            inputMode="tel"
+            autoComplete="tel"
+          />
+          <Input
+            value={form.photoUrl}
+            onChange={(event) =>
+              onFormChange((current) => ({ ...current, photoUrl: event.target.value }))
+            }
+            placeholder="URL da foto"
+            type="url"
+          />
+        </div>
+        <Button type="submit" className="mt-3 w-full md:w-auto">
+          Cadastrar barbeiro
+        </Button>
+        {message ? <p className="mt-3 text-sm font-semibold text-emerald-700">{message}</p> : null}
+      </form>
+
+      <div className="grid gap-3">
+        {professionals.map((professional) => (
+          <article
+            key={professional.id}
+            className="flex flex-col gap-3 rounded-md border border-border bg-zinc-50 p-3 md:flex-row md:items-center md:justify-between"
+          >
+            <div className="min-w-0">
+              <p className="truncate font-bold">{professional.name}</p>
+              <p className="truncate text-sm text-zinc-600">{professional.specialty}</p>
+              <p className="mt-1 text-xs font-semibold text-emerald-700">
+                Intervalos de {professional.slotInterval} min
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <WeekendToggle
+                label="Agenda aos sabados"
+                checked={Boolean(professional.worksSaturday)}
+                onChange={(value) => onUpdateWeekend(professional.id, "worksSaturday", value)}
+              />
+              <WeekendToggle
+                label="Agenda aos domingos"
+                checked={Boolean(professional.worksSunday)}
+                onChange={(value) => onUpdateWeekend(professional.id, "worksSunday", value)}
+              />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WeekendToggle({
+  label,
+  checked,
+  onChange
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="flex h-11 cursor-pointer items-center justify-between gap-3 rounded-md border border-border bg-white px-3 text-sm font-bold text-zinc-700">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-5 w-5 accent-emerald-700"
+      />
+    </label>
+  );
+}
+
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-md border border-border bg-white p-4 shadow-sm">
@@ -487,12 +691,14 @@ function AdminRevenueItem({ label, value }: { label: string; value: string }) {
 
 function BookingRow({
   booking,
+  professionals,
   canReassign,
   onReassign,
   onMarkAsPaid,
   onCancel
 }: {
   booking: ExistingBooking;
+  professionals: ProfessionalPublicProfile[];
   canReassign: boolean;
   onReassign: (bookingId: string, professionalId: string) => void;
   onMarkAsPaid: (bookingId: string) => void;

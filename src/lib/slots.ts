@@ -46,9 +46,13 @@ export function getAvailableSlots({
   now = new Date()
 }: GetAvailableSlotsInput): AvailableSlot[] {
   const weekday = getDay(date);
+  const allowsWeekend =
+    (weekday === 6 && businessHours.some((rule) => rule.weekday === 6 && rule.isActive)) ||
+    (weekday === 0 && businessHours.some((rule) => rule.weekday === 0 && rule.isActive)) ||
+    (weekday !== 0 && weekday !== 6);
   const hoursRule = businessHours.find((rule) => rule.weekday === weekday && rule.isActive);
 
-  if (!hoursRule) {
+  if (!hoursRule || !allowsWeekend) {
     return [];
   }
 

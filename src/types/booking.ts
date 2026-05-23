@@ -14,6 +14,8 @@ export type ProfessionalPublicProfile = {
   photoUrl?: string;
   whatsapp?: string;
   slotInterval: number;
+  worksSaturday?: boolean;
+  worksSunday?: boolean;
 };
 
 export type ExistingBooking = {

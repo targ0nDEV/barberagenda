@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addBooking, getBookings } from "@/lib/booking-store";
+import { getProfessionals } from "@/lib/professional-store";
 import { buildWhatsAppConfirmationMessage, getAvailableSlots } from "@/lib/slots";
 import { cn, formatCurrencyBRL, onlyDigits } from "@/lib/utils";
 import type {
@@ -43,14 +44,44 @@ export function PublicBookingPage({
   const [customerPhone, setCustomerPhone] = useState("");
   const [bookingFinished, setBookingFinished] = useState(false);
   const [currentBookings, setCurrentBookings] = useState(bookings);
+  const [currentProfessionals, setCurrentProfessionals] = useState(professionals);
 
   useEffect(() => {
     setCurrentBookings(getBookings(bookings));
+    setCurrentProfessionals(getProfessionals());
+
+    function handleProfessionalsUpdate() {
+      setCurrentProfessionals(getProfessionals());
+    }
+
+    window.addEventListener("agende-professionals-updated", handleProfessionalsUpdate);
+
+    return () => window.removeEventListener("agende-professionals-updated", handleProfessionalsUpdate);
   }, [bookings]);
 
   const selectedProfessional =
-    professionals.find((barber) => barber.id === selectedProfessionalId) ?? professional;
+    currentProfessionals.find((barber) => barber.id === selectedProfessionalId) ?? professional;
   const selectedService = services.find((service) => service.id === selectedServiceId) ?? services[0];
+  const selectedBusinessHours = useMemo(
+    () =>
+      businessHours.map((rule) => {
+        if (rule.weekday === 6) {
+          return { ...rule, isActive: Boolean(selectedProfessional.worksSaturday) };
+        }
+
+        if (rule.weekday === 0) {
+          return {
+            ...rule,
+            opensAt: "09:00",
+            closesAt: "14:00",
+            isActive: Boolean(selectedProfessional.worksSunday)
+          };
+        }
+
+        return rule;
+      }),
+    [businessHours, selectedProfessional.worksSaturday, selectedProfessional.worksSunday]
+  );
   const selectedProfessionalBookings = useMemo(
     () => currentBookings.filter((booking) => booking.professionalId === selectedProfessional.id),
     [currentBookings, selectedProfessional.id]
@@ -65,12 +96,12 @@ export function PublicBookingPage({
       date: selectedDay,
       serviceDurationMin: selectedService.durationMin,
       slotIntervalMin: selectedProfessional.slotInterval,
-      businessHours,
+      businessHours: selectedBusinessHours,
       bookings: selectedProfessionalBookings
     });
   }, [
-    businessHours,
     selectedDay,
+    selectedBusinessHours,
     selectedProfessional.slotInterval,
     selectedProfessionalBookings,
     selectedService
@@ -148,7 +179,7 @@ export function PublicBookingPage({
         <div className="space-y-7">
           <StepHeader icon={<UserRound className="h-4 w-4" />} title="Escolha o barbeiro" />
           <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1">
-            {professionals.map((barber) => {
+            {currentProfessionals.map((barber) => {
               const selected = barber.id === selectedProfessional.id;
 
               return (

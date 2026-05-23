@@ -19,7 +19,9 @@ export const professionals: ProfessionalPublicProfile[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=600&q=80",
     whatsapp: "5516997483100",
-    slotInterval: 30
+    slotInterval: 30,
+    worksSaturday: true,
+    worksSunday: false
   },
   {
     id: "prof_rafa",
@@ -29,7 +31,9 @@ export const professionals: ProfessionalPublicProfile[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80",
     whatsapp: "5516997483100",
-    slotInterval: 30
+    slotInterval: 30,
+    worksSaturday: true,
+    worksSunday: false
   },
   {
     id: "prof_diego",
@@ -39,7 +43,9 @@ export const professionals: ProfessionalPublicProfile[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=80",
     whatsapp: "5516997483100",
-    slotInterval: 30
+    slotInterval: 30,
+    worksSaturday: true,
+    worksSunday: false
   },
   {
     id: "prof_caio",
@@ -49,7 +55,9 @@ export const professionals: ProfessionalPublicProfile[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80",
     whatsapp: "5516997483100",
-    slotInterval: 30
+    slotInterval: 30,
+    worksSaturday: true,
+    worksSunday: false
   },
   {
     id: "prof_luan",
@@ -59,7 +67,9 @@ export const professionals: ProfessionalPublicProfile[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=600&q=80",
     whatsapp: "5516997483100",
-    slotInterval: 30
+    slotInterval: 30,
+    worksSaturday: true,
+    worksSunday: false
   }
 ];
 
