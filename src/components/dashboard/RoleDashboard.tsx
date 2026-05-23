@@ -116,6 +116,14 @@ export function RoleDashboard() {
   const revenueCents = bookings
     .filter((booking) => booking.paymentStatus === "PAID")
     .reduce((total, booking) => total + (booking.totalAmountCents ?? 0), 0);
+  const pendingInPersonCents = bookings
+    .filter(
+      (booking) =>
+        booking.paymentMethod === "PAY_IN_PERSON" &&
+        booking.paymentStatus !== "PAID" &&
+        booking.status !== "CANCELLED"
+    )
+    .reduce((total, booking) => total + (booking.totalAmountCents ?? 0), 0);
 
   function logout() {
     window.localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -491,11 +499,7 @@ export function RoleDashboard() {
                 <AdminRevenueItem label="Recebido" value={formatCurrencyBRL(revenueCents)} />
                 <AdminRevenueItem
                   label="A receber presencial"
-                  value={formatCurrencyBRL(
-                    bookings
-                      .filter((booking) => booking.paymentMethod === "PAY_IN_PERSON")
-                      .reduce((total, booking) => total + (booking.totalAmountCents ?? 0), 0)
-                  )}
+                  value={formatCurrencyBRL(pendingInPersonCents)}
                 />
                 <AdminRevenueItem
                   label="Ticket medio"
